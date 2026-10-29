@@ -1,0 +1,24 @@
+name: costam
+on: push 
+jobs:
+  main:
+    runs_on: ubuntu-latest
+    steps:
+      -uses: actions/checkout@v7
+      -uses: quarto-dev:quarto_actions/setup@v2
+        with:
+          tinytex: true
+
+      -run: pip install ipykrenel nbclient matplotlib PyMPDATA
+      -run: quarto render Untitled5.ipynb --to pdf --execute
+      -uses: actions/upload-artifact@v7
+        with:
+          path: Untitled5.pdf
+          
+      
+      
+
+
+
+
+
