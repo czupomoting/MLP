@@ -26,7 +26,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install \
-            ipykernel jupyter-client nbformat pyyaml pypdf \
+            ipykernel jupyter-client nbclient nbformat pyyaml pypdf \
             numpy matplotlib \
             PyMPDATA open-atmos-jupyter-utils
 
