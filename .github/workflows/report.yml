@@ -3,7 +3,6 @@ name: sprawozdanie
 on:
   push:
     paths:
-      - 'boat_wake/**'
       - '.github/workflows/report.yml'
   workflow_dispatch:
 
