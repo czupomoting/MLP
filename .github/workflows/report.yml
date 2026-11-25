@@ -1,10 +1,6 @@
 name: sprawozdanie
 
-on:
-  push:
-    paths:
-      - '.github/workflows/report.yml'
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 jobs:
   report:
@@ -38,15 +34,12 @@ jobs:
         run: echo "QUARTO_PYTHON=$(which python)" >> "$GITHUB_ENV"
 
       - name: Uruchom notebook i wygeneruj rysunki
-        working-directory: boat_wake
         run: quarto render boat_wake.ipynb --to pdf --execute
 
       - name: Zbuduj dwustronne sprawozdanie
-        working-directory: boat_wake
         run: quarto render report.qmd --to pdf
 
       - name: Kontrole jakości
-        working-directory: boat_wake
         run: |
           python - <<'PY'
           from pypdf import PdfReader
@@ -63,16 +56,15 @@ jobs:
         with:
           name: sprawozdanie
           path: |
-            boat_wake/report.pdf
-            boat_wake/boat_wake.pdf
-            boat_wake/wake.pdf
-            boat_wake/wake.svg
-            boat_wake/wake.gif
-            boat_wake/wake_scan.pdf
-            boat_wake/wake_scan.svg
-            boat_wake/angle_vs_fr.pdf
-            boat_wake/angle_vs_fr.svg
-            boat_wake/convergence.pdf
-            boat_wake/convergence.svg
-            boat_wake/sciaga.pdf
+            report.pdf
+            boat_wake.pdf
+            wake.pdf
+            wake.svg
+            wake.gif
+            wake_scan.pdf
+            wake_scan.svg
+            angle_vs_fr.pdf
+            angle_vs_fr.svg
+            convergence.pdf
+            convergence.svg
           if-no-files-found: error
