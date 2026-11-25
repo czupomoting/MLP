@@ -1,0 +1,45 @@
+---
+title: "Kilwater łodzi w płytkiej wodzie"
+subtitle: "Weryfikacja sin(theta) = 1/Fr w modelu SWE rozwiązanym w PyMPDATA"
+format:
+  pdf:
+    geometry: [margin=1.6cm]
+    fontsize: 10pt
+    toc: false
+execute:
+  enabled: false
+---
+
+**Pytanie.** Łódka płynie ze stałą prędkością $U$ po wodzie o głębokości $H$. Pod jakim kątem rozchodzi się za nią kilwater? Dla fal długich $\omega = ck$, $c=\sqrt{gH}$, więc fale nie są dyspersyjne i zaburzenie zamyka się w klinie Macha:
+
+$$\sin\theta = \frac{c}{U} = \frac{1}{\mathrm{Fr}},\qquad \mathrm{Fr}=\frac{U}{\sqrt{gH}}.$$
+
+**Metoda.** Kadłub to ruchoma batymetria $b(x-Ut,y)$ (gładki supergauss) w równaniach
+
+$$\partial_t h+\nabla\!\cdot\!(h\mathbf u)=0,\qquad
+\partial_t(h\mathbf u)+\nabla\!\cdot\!(h\mathbf u\mathbf u)=-gh\nabla\zeta,$$
+
+gdzie $\zeta=h-b$. W solwerze PyMPDATA zmieniono dwie rzeczy: batymetria zależy od czasu, a gradient ciśnienia liczony jest różnicą centralną z zawijaniem (`np.roll`), zgodnie z warunkiem `Periodic()`. Masa jest zachowana, CFL = 0.5.
+
+![Pola $\zeta$ dla czterech liczb Froude'a; linie przerywane to teoria, zielone okno to dopasowanie kątu.](wake_scan.pdf){#fig-scan width="100%"}
+
+| $Fr$ | $\theta_\mathrm{teor}$ | $\theta_\mathrm{pom}$ | błąd | $b$ [m] | punkty |
+|---:|---:|---:|---:|---:|---:|
+| 1.2 | 56.44° | 55.46° | -0.99° | 41.9 | 38 |
+| 1.5 | 41.81° | 41.31° | -0.50° | 25.9 | 88 |
+| 2.0 | 30.00° | 29.61° | -0.39° | 18.4 | 137 |
+| 3.0 | 19.47° | 19.20° | -0.27° | 13.4 | 190 |
+
+Kąt mierzymy w oknie $x\in[x_0+ct+\Delta,\,x_{ boat}-\Delta]$ jako najdalsze $y$ o $|\zeta|>0.2A$, z dopasowaniem $|y-y_0|=\tan\theta\,(x_{boat}-x)+b$. Wolny wyraz jest niezbędny: efektywne źródło leży 20–40 m przed środkiem kadłuba; fit przez środek daje 37° zamiast 30°.
+
+::: {layout-ncol=2}
+
+![Pomiar vs teoria.](angle_vs_fr.pdf){#fig-angle}
+
+![Zbieżność przestrzenna i czasowa.](convergence.pdf){#fig-conv}
+
+:::
+
+**Wnioski.** Zgodność z $\sin\theta=1/Fr$ jest lepsza niż 1° w całym skanie; błąd maleje wraz z $Fr$, bo klin jest dłuższy, a wpływ skończonego kadłuba mniejszy. Zbieżność przestrzenna daje błąd $0.62^\circ\to0.39^\circ\to0.39^\circ$ dla $\Delta x=3/2/1$ m, czasowa $0.36^\circ\to0.39^\circ\to0.40^\circ$ dla $\Delta t=0.32/0.16/0.08$ s — poniżej ~0.4° dominuje podłoga estymatora (próg $0.2A$ i długość kadłuba), nie błąd rozwiązania. Przed dziobem pole jest ciche ($|\zeta|\le 5.8\cdot10^{-5}$ m dla $Fr\ge1.5$; dla $Fr=1.2$ zawinięty front startowy uniemożliwia test). Dryf masy $\le10^{-16}$, stacjonarność w układzie łódki ~1% amplitudy. Zaburzenia przy $x=0,600$ m to szew torusa, nie błąd schematu. Animacja: `wake.gif` (osobny artefakt).
+
+**Literatura.** C. B. Vreugdenhil, *Numerical Methods for Shallow-Water Flow*, Kluwer 1994 (równania z batymetrią, linearyzacja). G. B. Whitham, *Linear and Nonlinear Waves*, Wiley 1974 (klin Macha, fale okrętowe). Wykład S. Arabasa, W6 (2026) — solwer PyMPDATA.
