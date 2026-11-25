@@ -1,0 +1,79 @@
+name: sprawozdanie
+
+on:
+  push:
+    paths:
+      - 'boat_wake/**'
+      - '.github/workflows/report.yml'
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          tinytex: true
+
+      - name: rsvg-convert (SVG z notebooka do PDF)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin
+
+      - name: Zależności
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            ipykernel jupyter-client nbformat pyyaml pypdf \
+            numpy matplotlib \
+            PyMPDATA open-atmos-jupyter-utils
+
+      - name: Ustaw interpreter dla Quarto
+        run: echo "QUARTO_PYTHON=$(which python)" >> "$GITHUB_ENV"
+
+      - name: Uruchom notebook i wygeneruj rysunki
+        working-directory: boat_wake
+        run: quarto render boat_wake.ipynb --to pdf --execute
+
+      - name: Zbuduj dwustronne sprawozdanie
+        working-directory: boat_wake
+        run: quarto render report.qmd --to pdf
+
+      - name: Kontrole jakości
+        working-directory: boat_wake
+        run: |
+          python - <<'PY'
+          from pypdf import PdfReader
+
+          pages = len(PdfReader('report.pdf').pages)
+          assert pages <= 2, f"raport ma {pages} stron"
+          for name in ('wake.pdf', 'wake_scan.pdf', 'angle_vs_fr.pdf', 'convergence.pdf'):
+              data = open(name, 'rb').read()
+              assert b'/Subtype /Image' not in data, f"{name} zawiera raster"
+          print(f'OK: raport {pages} strony, rysunki wektorowe')
+          PY
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sprawozdanie
+          path: |
+            boat_wake/report.pdf
+            boat_wake/boat_wake.pdf
+            boat_wake/wake.pdf
+            boat_wake/wake.svg
+            boat_wake/wake.gif
+            boat_wake/wake_scan.pdf
+            boat_wake/wake_scan.svg
+            boat_wake/angle_vs_fr.pdf
+            boat_wake/angle_vs_fr.svg
+            boat_wake/convergence.pdf
+            boat_wake/convergence.svg
+            boat_wake/sciaga.pdf
+          if-no-files-found: error
