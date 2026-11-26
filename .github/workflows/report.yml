@@ -57,14 +57,5 @@ jobs:
           name: sprawozdanie
           path: |
             report.pdf
-            boat_wake.pdf
-            wake.pdf
-            wake.svg
             wake.gif
-            wake_scan.pdf
-            wake_scan.svg
-            angle_vs_fr.pdf
-            angle_vs_fr.svg
-            convergence.pdf
-            convergence.svg
           if-no-files-found: error
